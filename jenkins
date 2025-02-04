@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                echo 'Cloning the repository...'
+                git branch: 'main', url: 'https://github.com/PajaspaceNet/jenkins_demo.git'
+                
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing dependencies...'
+                sh 'pip install -r requirements.txt'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building the application...'
+               //  sh './build.sh' // Pokud build.sh neexistuje, můžeš to odstranit nebo nahradit konkrétními příkazy
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Installing pytest...'
+                sh 'pip install --upgrade pip'
+                sh 'pip install pytest'  // Ujisti se, že pytest je nainstalován
+                echo 'Running tests with pytest...'
+                sh 'pip install pytest'  // Ujisti se, že pytest je nainstalován
+                sh 'python3 -m pytest tests/ --junitxml=test-results.xml'
+
+            }
+        }
+        
+        stage('Commit and Push to GitHub') {
+    steps {
+        echo 'Adding and committing changes...'
+        sh '''
+            git config --global user.email "tvoje credentials"
+            git config --global user.name "tvoje credentials"
+            git add .
+            
+            git commit -m "Automated commit from Jenkins" || echo "No changes to commit"
+            git push git@github.com:PajaspaceNet/jenkins_demo.git main
+        '''
+       }
+    }
+
+        stage('Archive Test Results') {
+            steps {
+                echo 'Archiving test results...'
+                junit 'test-results.xml'
+            }
+        }
+    }
+}
